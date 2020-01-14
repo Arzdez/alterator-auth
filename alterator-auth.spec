@@ -62,6 +62,7 @@ Requires: krb5-kinit
 Requires: pam_mount
 Requires: libnss-role
 Requires: alterator-datetime
+Requires: sssd-dbus
 
 Provides:  task-auth-ad = %EVR
 Obsoletes: task-auth-ad < %EVR
