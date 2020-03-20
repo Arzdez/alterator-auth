@@ -174,6 +174,13 @@ get_domain_from_dns()
 	resolvconf -l 2>/dev/null | sed -n 's/^\(domain\|search\) //p'|sed 's/ localdomain//' | tr ' ' '\n' | head -1
 }
 
+gpupdate_setup()
+{
+	if [ "$1" = "#t" ]; then
+		gpupdate-setup enable
+	fi
+}
+
 on_message()
 {
 	case "$in_action" in
@@ -269,7 +276,7 @@ on_message()
                     [ "$output" = "Unknown administrator name" ] && output="`_ "Unknown administrator name"`"
                     [ "$output" = "Preauthentication failed" ] && output="`_ "Preauthentication failed"`"
                     [ "$output" = "Wrong password" ] && output="`_ "Wrong password"`"
-                    echo "$output" | grep "^Joined '.*' to dns domain '.*'$" || write_error "`_ "Unable to join to Active Directory domain:"` $output"
+                    (echo "$output" | grep "^Joined '.*' to dns domain '.*'$" && gpupdate_setup "$in_group_policy") || write_error "`_ "Unable to join to Active Directory domain:"` $output"
                     ;;
                 freeipa)
                     output="$(/usr/sbin/system-auth write freeipa "$in_ad_domain" "$in_ad_host" "$in_admin_username" "$in_admin_password" 2>&1)"

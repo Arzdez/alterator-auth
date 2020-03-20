@@ -51,6 +51,7 @@
                 "auth_type" (form-value "auth_type")
                 "admin_username" (admin-cred-param 'admin_username)
                 "admin_password" (admin-cred-param 'admin_password)
+                "group_policy" (admin-cred-param 'group_policy)
                 (form-value-list))
             (form-update-value-list '("current_domain") (woo-read-first "/auth"))
             ;;; Show welcome message for AD and FreeIPA

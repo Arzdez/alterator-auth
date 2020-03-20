@@ -2,7 +2,7 @@
 
 ;;; Logic
 (define (ui-write)
-  (document:end (form-value-list '("admin_username" "admin_password"))))
+  (document:end (form-value-list '("admin_username" "admin_password" "group_policy"))))
 
 ;;; Default administrator name for domain types
 (define (get-admin-name type)
@@ -26,6 +26,10 @@
     (edit name "admin_username")
     (label text (_ "Password:"))
     (edit name "admin_password" echo "stars")
+
+    (checkbox colspan 2 align "left" text(_ "Enable Group Policy") name "group_policy" value #t)
+    (spacer)
+
     (hbox colspan 2 align "left"
       (button name "ok" text (_ "OK"))
 	  (button name "cancel" text (_ "Cancel"))))
