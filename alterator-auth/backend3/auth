@@ -267,6 +267,7 @@ on_message()
                     [ "$output" = "Unable to find specified domain" ] && output="`_ "Unable to find specified domain"`"
                     [ "$output" = "Cannot contact KDC for realm" ] && output="`_ "Cannot contact KDC for realm"`"
                     [ "$output" = "Unknown administrator name" ] && output="`_ "Unknown administrator name"`"
+                    [ "$output" = "Preauthentication failed" ] && output="`_ "Preauthentication failed"`"
                     [ "$output" = "Wrong password" ] && output="`_ "Wrong password"`"
                     echo "$output" | grep "^Joined '.*' to dns domain '.*'$" || write_error "`_ "Unable to join to Active Directory domain:"` $output"
                     ;;
