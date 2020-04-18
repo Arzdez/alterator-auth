@@ -224,6 +224,9 @@ on_message()
 		    rpm -q task-auth-ad-sssd &>/dev/null && srv="true"
 		    write_bool_param "type_ad_available" "$srv"
                     srv="false"
+		    rpm -q gpupdate &>/dev/null && srv="true"
+		    write_bool_param "gpupdate_available" "$srv"
+		    srv="false"
 		    rpm -q task-auth-freeipa &>/dev/null && srv="true"
 		    write_bool_param "type_freeipa_available" "$srv"
 		    ;;

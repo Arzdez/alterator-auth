@@ -4,7 +4,7 @@ Name: alterator-auth
 Version: 0.41
 Release: alt1
 
-%filter_from_requires /^samba-common$/d;/systemd-services/d
+%filter_from_requires /^samba-common$/d;/systemd-services/d;/^gpupdate$/d
 
 Source:%name-%version.tar
 

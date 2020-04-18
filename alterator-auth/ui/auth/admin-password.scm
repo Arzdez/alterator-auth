@@ -14,6 +14,9 @@
 
 ;;; Init dialog
 (define (ui-init)
+  (gpupdate-checkbox visibility (global 'gpupdate-available))
+  (gpupdate-checkbox value (global 'gpupdate-available))
+
   (form-update-value "admin_username" (get-admin-name (global 'domain-type)))
   (form-bind "ok" "click" ui-write)
   (form-bind "cancel" "click" document:end))
@@ -27,7 +30,8 @@
     (label text (_ "Password:"))
     (edit name "admin_password" echo "stars")
 
-    (checkbox colspan 2 align "left" text(_ "Enable Group Policy") name "group_policy" value #t)
+    (document:id gpupdate-checkbox
+      (checkbox colspan 2 align "left" visibility #f text(_ "Enable Group Policy") name "group_policy" value #f))
     (spacer)
 
     (hbox colspan 2 align "left"

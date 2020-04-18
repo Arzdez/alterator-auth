@@ -74,6 +74,7 @@
 (define (ui-init)
     (let ((data (woo-read-first "/auth")))
     (form-update-value-list '("current_domain" "ccreds" "ldap_domain" "auth_type" "ad_domain" "ad_workgroup" "freeipa_domain") data)
+    (set-global! 'gpupdate-available (woo-get-option data 'gpupdate_available #f))
 
     ;;; show warnings
     (if (not (woo-get-option data 'type_ad_available))
