@@ -319,14 +319,16 @@ set_domain_group_mapping()
 
 adapt_dm()
 {
+	export shell_ini_config_prefix=''
 	if [ -e /etc/lightdm/lightdm.conf ]; then
-		ini_config_set /etc/lightdm/lightdm.conf "SeatDefaults" "greeter-hide-users" "true"
+		ini_config_set /etc/lightdm/lightdm.conf "Seat:*" "greeter-hide-users" "true"
 		chmod a+r /etc/lightdm/lightdm.conf
 	fi
 	if [ -e /etc/lightdm/lightdm-gtk-greeter.conf ]; then
 		ini_config_set /etc/lightdm/lightdm-gtk-greeter.conf "greeter" "show-language-selector" "false"
 		chmod a+r /etc/lightdm/lightdm-gtk-greeter.conf
 	fi
+	export shell_ini_config_prefix='	'
 }
 
 write_ad_conf()
