@@ -587,10 +587,6 @@ join_ad_domain()
     # Prepare Kerberos environment
     set_kerberos_realm "$ldomain"
 
-    # Remove local DNS from resolvconf
-    subst '/^name_servers=127.0.0.1/d' /etc/resolvconf.conf
-    resolvconf -u
-
     # Get Kerberos ticket for administrator
     output="$(echo "$password" | kinit "$user@$domain" 2>&1 >/dev/null)"
     if [ "$?" -ne 0 ]; then
