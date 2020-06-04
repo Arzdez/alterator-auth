@@ -643,8 +643,8 @@ join_ipa_domain()
     $ipa_cmd -U --domain "$domain_name" -p "$admin_name" -w "$admin_password" 2>&1 | tee -a "$log"
     ret=$?
 
-    # Fix nsswitch group param
-    subst 's/role sss$/sss role/' "$nsswitchfile"
+    # Adapt DM for too many domain users
+    adapt_dm
 
     echo "Finished at $(date)" >> "$log"
     return $ret
