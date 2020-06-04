@@ -131,8 +131,8 @@ install -Dpm755 hooks/auth %buildroot/%_hooksdir/90-auth
 %files -n task-auth-freeipa
 
 %changelog
-* Tue Jun 02 2020 Andrey Cherepanov <cas@altlinux.org> 0.41-alt1.1.p9
-- Hide user list in Lightdm for domain login.
+* Thu Jun 04 2020 Andrey Cherepanov <cas@altlinux.org> 0.41-alt1.1.p9
+- Hide user list in Lightdm for domain login (for Active Directory, FreeIPA and ALT Domain).
 - Do not remove local DNS from resolvconf.
 
 * Wed Sep 11 2019 Andrey Cherepanov <cas@altlinux.org> 0.41-alt1
