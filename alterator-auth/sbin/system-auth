@@ -680,6 +680,14 @@ Use FreeIPA authentication
 USAGE.
 }
 
+# Disable avahi-daemon if .local domain is requested
+check_avahi() {
+	domain="$1"
+	if [ "${domain##*.}" = 'local' ]; then
+		disable_service avahi-daemon
+	fi
+}
+
 action="$1" ; shift
 [ "$action" = "-d" ] && action="$1" && shift
 [ $# -ge 1 ] && object="$1" && shift
@@ -692,18 +700,19 @@ case "$action" in
         list
     ;;
     write)
-	  # Disable service of old scheme
-	  current="$(/usr/sbin/control system-auth)"
-	  [ "$current" = "ldap" -o "$current" = "krb5" ] && disable_service nslcd
-	  [ "$current" = "ldap" -o "$current" = "krb5" ] && disable_service settime-rfc867
-	  [ "$current" = "winbind" ] && disable_service winbind
-	  [ "$current" = "sss" ] && disable_service sssd
+	# Disable service of old scheme
+	current="$(/usr/sbin/control system-auth)"
+	[ "$current" = "ldap" -o "$current" = "krb5" ] && disable_service nslcd
+	[ "$current" = "ldap" -o "$current" = "krb5" ] && disable_service settime-rfc867
+	[ "$current" = "winbind" ] && disable_service winbind
+	[ "$current" = "sss" ] && disable_service sssd
 
-        case "$object" in
+    case "$object" in
         local)
             write_profile "$object"
             ;;
         ldap|krb5*)
+	    check_avahi "$2"
             if  check_basedn "$1" && check_uri "$2"  ;then
                 if [ "$ldap_auth_sssd" = "yes" ]; then
                     rpm -q sssd-ldap sssd-krb5 &>/dev/null || fatal "LDAP authentication with SSSD requires both sssd-ldap and sssd-krb5 packages installed"
@@ -739,6 +748,7 @@ case "$action" in
             ;;
         ad)
             if  test -n "$1" ;then
+		check_avahi "$1"
                 test -x "$net_cmd" || fatal "Cannot find $net_cmd executable required to join to Active Directory domain"
                 # Check domain name in DNS
                 check_domain_in_dns "$1" || exit 1
@@ -763,6 +773,7 @@ case "$action" in
             ;;
         freeipa)
             if  test -n "$1" ;then
+		check_avahi "$1"
                 test -x "$ipa_cmd" || fatal "Cannot find $ipa_cmd executable required to join to FreeIPA domain"
                 # Check domain name in DNS
                 check_domain_in_dns "$1" || exit 1
