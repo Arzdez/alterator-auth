@@ -2,7 +2,7 @@
 
 Name: alterator-auth
 Version: 0.41
-Release: alt1.1.p9
+Release: alt1.2.p9
 
 %filter_from_requires /^samba-common$/d;/systemd-services/d
 
@@ -131,6 +131,9 @@ install -Dpm755 hooks/auth %buildroot/%_hooksdir/90-auth
 %files -n task-auth-freeipa
 
 %changelog
+* Fri Jun 05 2020 Andrey Cherepanov <cas@altlinux.org> 0.41-alt1.2.p9
+- Disable avahi-daemon if login to .local domain is requested (ALT #37082).
+
 * Thu Jun 04 2020 Andrey Cherepanov <cas@altlinux.org> 0.41-alt1.1.p9
 - Hide user list in Lightdm for domain login (for Active Directory, FreeIPA and ALT Domain).
 - Do not remove local DNS from resolvconf.
