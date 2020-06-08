@@ -521,6 +521,10 @@ disable_service() {
         chkconfig $service off &>/dev/null
         [ -n "$(service $service status| grep '^active\|running$')" ] && service $service stop &>/dev/null
     fi
+    if [ -e "/lib/systemd/system/$service.socket" ]; then
+    	SYSTEMCTL="systemctl"
+    	"$SYSTEMCTL" disable --now $service.socket
+    fi
     return 0
 }
 
