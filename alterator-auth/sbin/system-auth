@@ -684,11 +684,11 @@ Use FreeIPA authentication
 USAGE.
 }
 
-# Disable avahi-daemon if .local domain is requested
+# Place dns source immediately after files if .local domain is requested
 check_avahi() {
 	domain="$1"
 	if [ "${domain##*.}" = 'local' ]; then
-		disable_service avahi-daemon
+		subst '/^hosts:/ s/ dns//;s/files/files dns/' "$nsswitchfile"
 	fi
 }
 
