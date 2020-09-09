@@ -176,8 +176,16 @@ get_domain_from_dns()
 
 gpupdate_setup()
 {
+	rpm -q gpupdate &>/dev/null || return 0
+
 	if [ "$1" = "#t" ]; then
-		gpupdate-setup enable
+		/usr/sbin/gpupdate-setup enable
+	elif [ "$1" = "local" ]; then
+		if [ -f /etc/gpupdate/gpupdate.ini ]; then
+			/usr/sbin/gpupdate-setup set-backend local
+		fi
+	else
+		/usr/sbin/gpupdate-setup disable
 	fi
 }
 
@@ -235,6 +243,7 @@ on_message()
               case "$in_auth_type" in
                 local)
                     /usr/sbin/system-auth write local
+                    gpupdate_setup local
                     ;;
                 ldap)
                     [ "$in_ldap_ssl" == "on" ] && ldap_uri="ldaps://" || ldap_uri="ldap://"
