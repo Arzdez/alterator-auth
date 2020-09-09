@@ -167,6 +167,9 @@ install -Dpm755 hooks/auth %buildroot/%_hooksdir/90-auth
 %files -n task-auth-freeipa
 
 %changelog
+* Thu Sep 10 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.43.8-alt1
+- Improve gpupdate enable/disable process
+
 * Wed Jul 15 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.43.7-alt1
 - Add default libnss-role roles for users, powerusers and localadmins in separated
   package: alterator-roles-common - common files for alterator-roles (not implemented yet).
