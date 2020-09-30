@@ -362,11 +362,19 @@ write_ad_conf()
 MAPPING_PARAMS_SAMBA3
 )"
 	else
-	    MAPPING_PARAMS="$(cat << MAPPING_PARAMS_SAMBA4
+		if [ -e "$sssd_conf" ]; then
+		    MAPPING_PARAMS="$(cat << MAPPING_PARAMS_SSSD
+        idmap config * : range = 200000-2000200000
+        idmap config * : backend = sss
+MAPPING_PARAMS_SSSD
+)"
+		else
+		    MAPPING_PARAMS="$(cat << MAPPING_PARAMS_SAMBA4
         idmap config * : range = 10000-20000000
         idmap config * : backend = tdb
 MAPPING_PARAMS_SAMBA4
 )"
+		fi
 	fi
 
 	if [ -e "$sssd_conf" ]; then
@@ -771,9 +779,8 @@ case "$action" in
                 if [ -e "$sssd_conf" ]; then
 		    disable_service nscd
                     enable_service sssd
-                else
-                    enable_service winbind
                 fi
+                enable_service winbind
             else
                 exit 1
             fi
