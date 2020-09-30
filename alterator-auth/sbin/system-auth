@@ -378,7 +378,13 @@ MAPPING_PARAMS_SAMBA4
 	fi
 
 	if [ -e "$sssd_conf" ]; then
-	    WINBIND_PARAMS=""
+	    WINBIND_PARAMS="$(cat << MAPPING_PARAMS_WINBIND_SSSD
+	winbind use default domain = yes
+	winbind enum users = no
+	winbind enum groups = no
+	template homedir = /home/$domain/%U
+MAPPING_PARAMS_WINBIND_SSSD
+)"
 	else
 	    MAPPING_PARAMS="$(cat << MAPPING_PARAMS_WINBIND
 	winbind use default domain = yes
