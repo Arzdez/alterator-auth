@@ -614,10 +614,12 @@ join_ad_domain()
 	error_bad_username="$(echo "$output"|grep '^kinit: Client not found in Kerberos database while getting initial credentials$')"
 	error_bad_preauth="$(echo "$output"|grep '^kinit: Preauthentication failed while getting initial credentials$')"
 	error_bad_credentials="$(echo "$output"|grep '^kinit: Password incorrect while getting initial credentials$')"
+	error_pass_expired="$(echo "$output"|grep '^kinit: Cannot read password while getting initial credentials$')"
 	[ -n "$error_unknown_kdc" ] && echo "Cannot contact KDC for realm" >&2
 	[ -n "$error_bad_username" ] && echo "Unknown administrator name" >&2
 	[ -n "$error_bad_preauth" ] && echo "Preauthentication failed" >&2
 	[ -n "$error_bad_credentials" ] && echo "Wrong password" >&2
+	[ -n "$error_pass_expired" ] && echo "Perhaps the password has expired" >&2
 	return 1
     else
 	# Set correct FQDN

@@ -288,6 +288,7 @@ on_message()
                     [ "$output" = "Unknown administrator name" ] && output="`_ "Unknown administrator name"`"
                     [ "$output" = "Preauthentication failed" ] && output="`_ "Preauthentication failed"`"
                     [ "$output" = "Wrong password" ] && output="`_ "Wrong password"`"
+                    [ "$output" = "Perhaps the password has expired" ] && output="`_ "Perhaps the password has expired"`"
                     (echo "$output" | grep "^Joined '.*' to dns domain '.*'$" && gpupdate_setup "$in_group_policy") || write_error "`_ "Unable to join to Active Directory domain:"` $output"
                     ;;
                 freeipa)
