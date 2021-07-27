@@ -197,7 +197,7 @@ on_message()
     		write_type_item domain hostname
 		    ;;
 	    list)
-		    [ "$in__objects" = "avail_domain" ] && list_domain || return
+    		[ "$in__objects" = "avail_domain" ] && list_domain
     		[ "$in__objects" = "local_bases" ] && local_bases
 	    	;;
 	    read)
