@@ -42,7 +42,7 @@ admin_groups="/etc/alterator/auth/admin-groups"
 
 # Use old LDAP auth scheme (nss_ldap or nss-ldapd) or new one (sssd)
 ldap_auth_sssd="no"
-test rpm -q sssd &>/dev/null || ldap_auth_sssd="yes"
+rpm -q sssd &>/dev/null && ldap_auth_sssd="yes"
 
 . alterator-datetime-functions
 . shell-config
