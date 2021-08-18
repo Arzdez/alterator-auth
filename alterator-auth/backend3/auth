@@ -84,6 +84,216 @@ list_domain()
 #    write_enum_item "custom" "$(_ "custom")"
 }
 
+list_sssd_ad_gpo_access_control()
+{
+	strings=$(control sssd-ad-gpo-access-control help)
+
+	while IFS= read -r str
+	do
+		str=${str%:*}
+		#remove spaces at the beginning and end of a line
+		str="$(echo -e "${str}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+		write_enum_item "$str" "$str"
+	done <<< $strings
+
+	strings=$(control sssd-ad-gpo-access-control)
+	if [ $strings = "unknown" ]
+	then
+		write_enum_item "$strings" "$strings"
+	fi
+}
+
+list_sssd_ad_gpo_ignore_unreadable()
+{
+	strings=$(control sssd-ad-gpo-ignore-unreadable help)
+
+	while IFS= read -r str
+	do
+		str=${str%:*}
+		#remove spaces at the beginning and end of a line
+		str="$(echo -e "${str}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+		write_enum_item "$str" "$str"
+	done <<< $strings
+
+	strings=$(control sssd-ad-gpo-ignore-unreadable)
+	if [ $strings = "unknown" ]
+	then
+		write_enum_item "$strings" "$strings"
+	fi
+}
+
+list_sssd_cache_credentials()
+{
+	strings=$(control sssd-cache-credentials help)
+
+	while IFS= read -r str
+	do
+		str=${str%:*}
+		#remove spaces at the beginning and end of a line
+		str="$(echo -e "${str}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+		write_enum_item "$str" "$str"
+	done <<< $strings
+
+	strings=$(control sssd-cache-credentials)
+	if [ $strings = "unknown" ]
+	then
+		write_enum_item "$strings" "$strings"
+	fi
+}
+
+list_sssd_drop_privileges()
+{
+	strings=$(control sssd-drop-privileges help)
+
+	while IFS= read -r str
+	do
+		str=${str%:*}
+		#remove spaces at the beginning and end of a line
+		str="$(echo -e "${str}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+		write_enum_item "$str" "$str"
+	done <<< $strings
+
+	strings=$(control sssd-drop-privileges)
+	if [ $strings = "unknown" ]
+	then
+		write_enum_item "$strings" "$strings"
+	fi
+}
+
+list_sssd_dyndns_refresh_interval()
+{
+	write_enum_item "disabled" "disabled"
+	write_enum_item "enabled" "enabled"
+	strings=$(control sssd-dyndns-refresh-interval)
+	if [ $strings = "unknown" ]
+	then
+		write_enum_item "$strings" "$strings"
+	fi
+}
+
+list_sssd_dyndns_ttl()
+{
+	write_enum_item "disabled" "disabled"
+	write_enum_item "enabled" "enabled"
+	strings=$(control sssd-dyndns-ttl)
+	if [ $strings = "unknown" ]
+	then
+		write_enum_item "$strings" "$strings"
+	fi
+}
+
+list_sssd_dyndns_update()
+{
+	strings=$(control sssd-dyndns-update help)
+
+	while IFS= read -r str
+	do
+		str=${str%:*}
+		#remove spaces at the beginning and end of a line
+		str="$(echo -e "${str}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+		write_enum_item "$str" "$str"
+	done <<< $strings
+
+	strings=$(control sssd-dyndns-update)
+	if [ $strings = "unknown" ]
+	then
+		write_enum_item "$strings" "$strings"
+	fi
+}
+
+list_sssd_dyndns_update_ptr()
+{
+	strings=$(control sssd-dyndns-update-ptr help)
+
+	while IFS= read -r str
+	do
+		str=${str%:*}
+		#remove spaces at the beginning and end of a line
+		str="$(echo -e "${str}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+		write_enum_item "$str" "$str"
+	done <<< $strings
+
+	strings=$(control sssd-dyndns-update-ptr)
+	if [ $strings = "unknown" ]
+	then
+		write_enum_item "$strings" "$strings"
+	fi
+}
+
+get_dyndns_interval_or_ttl()
+{
+	str=$(control "$1")
+
+	if [[ "$str" =~ ^[0-9]+$ ]];then
+		write_string_param "$2" "enabled"
+		write_string_param "$3" "$str"
+	else
+		write_string_param "$2" "$str"
+	fi
+}
+
+get_additional_settings_values()
+{
+	str=$(control sssd-dyndns-update)
+	write_string_param sssd_dyndns_update "$str"
+	str=$(control sssd-dyndns-update-ptr)
+	write_string_param sssd_dyndns_update_ptr "$str"
+	str=$(control sssd-ad-gpo-access-control)
+	write_string_param sssd_ad_gpo_access_control "$str"
+	str=$(control sssd-ad-gpo-ignore-unreadable)
+	write_string_param sssd_ad_gpo_ignore_unreadable "$str"
+	str=$(control sssd-cache-credentials)
+	write_string_param sssd_cache_credentials "$str"
+	str=$(control sssd-drop-privileges)
+	write_string_param sssd_drop_privileges "$str"
+
+	get_dyndns_interval_or_ttl sssd-dyndns-refresh-interval \
+								sssd_dyndns_refresh_interval_status \
+								sssd_dyndns_refresh_interval_value
+	get_dyndns_interval_or_ttl sssd-dyndns-ttl \
+								sssd_dyndns_ttl_status \
+								sssd_dyndns_ttl_value
+}
+
+set_additional_settings_values()
+{
+	if [ "$in_sssd_ad_gpo_access_control" != "unknown" ];then
+		control sssd-ad-gpo-access-control "$in_sssd_ad_gpo_access_control"
+	fi
+
+	if [ "$in_sssd_ad_gpo_ignore_unreadable" != "unknown" ];then
+		control sssd-ad-gpo-ignore-unreadable "$in_sssd_ad_gpo_ignore_unreadable"
+	fi
+
+	if [ "$in_sssd_cache_credentials" != "unknown" ];then
+		control sssd-cache-credentials "$in_sssd_cache_credentials"
+	fi
+
+	if [ "$in_sssd_drop_privileges" != "unknown" ];then
+		control sssd-drop-privileges "$in_sssd_drop_privileges"
+	fi
+
+	if [ "$in_sssd_dyndns_refresh_interval_status" == "enabled" ];then
+		control sssd-dyndns-refresh-interval "$in_sssd_dyndns_refresh_interval_value"
+	elif [ "$in_sssd_dyndns_refresh_interval_status" == "disabled" ];then
+		control sssd-dyndns-refresh-interval "$in_sssd_dyndns_refresh_interval_status"
+	fi
+
+	if [ "$in_sssd_dyndns_ttl_status" == "enabled" ];then
+		control sssd-dyndns-ttl "$in_sssd_dyndns_ttl_value"
+	elif [ "$in_sssd_dyndns_ttl_status" == "disabled" ];then
+		control sssd-dyndns-ttl "$in_sssd_dyndns_ttl_status"
+	fi
+
+	if [ "$in_sssd_dyndns_update" != "unknown" ];then
+		control sssd-dyndns-update "$in_sssd_dyndns_update"
+	fi
+
+	if [ "$in_sssd_dyndns_update_ptr" != "unknown" ];then
+		control sssd-dyndns-update-ptr "$in_sssd_dyndns_update_ptr"
+	fi
+}
+
 txt_record()
 {
 	echo "$2" |
@@ -199,108 +409,124 @@ on_message()
 	    list)
     		[ "$in__objects" = "avail_domain" ] && list_domain
     		[ "$in__objects" = "local_bases" ] && local_bases
+    		[ "$in__objects" = "sssd_dyndns_update" ] && list_sssd_dyndns_update
+    		[ "$in__objects" = "sssd_dyndns_update_ptr" ] && list_sssd_dyndns_update_ptr
+    		[ "$in__objects" = "sssd_ad_gpo_access_control" ] && list_sssd_ad_gpo_access_control
+    		[ "$in__objects" = "sssd_ad_gpo_ignore_unreadable" ] && list_sssd_ad_gpo_ignore_unreadable
+    		[ "$in__objects" = "sssd_cache_credentials" ] && list_sssd_cache_credentials
+    		[ "$in__objects" = "sssd_drop_privileges" ] && list_sssd_drop_privileges
+    		[ "$in__objects" = "sssd_dyndns_refresh_interval" ] && list_sssd_dyndns_refresh_interval
+    		[ "$in__objects" = "sssd_dyndns_ttl" ] && list_sssd_dyndns_ttl
 	    	;;
 	    read)
-		    local domain=''
-		    auth_type="$(/usr/sbin/system-auth status |cut -f1 -d ' ')"
-		    write_string_param "auth_type" "$auth_type"
-		    get_ldap
-		    write_bool_param "ccreds" $(echo "$auth_type" | sed 's/krb5_ccreds/true/')
-		    write_string_param hostname "$(hostname -s)"
-		    if [ "$auth_type" = "ad" ]; then
-                	get_ad_info
+		    if [ "$in__objects" = "get_settings_values" ]; then
+		        get_additional_settings_values
 		    else
-			write_string_param ad_domain "$(get_domain_from_dns)"
+		        local domain=''
+		        auth_type="$(/usr/sbin/system-auth status |cut -f1 -d ' ')"
+		        write_string_param "auth_type" "$auth_type"
+		        get_ldap
+		        write_bool_param "ccreds" $(echo "$auth_type" | sed 's/krb5_ccreds/true/')
+		        write_string_param hostname "$(hostname -s)"
+		        if [ "$auth_type" = "ad" ]; then
+                    	get_ad_info
+		        else
+			    write_string_param ad_domain "$(get_domain_from_dns)"
+		        fi
+		        if [ "$auth_type" = "freeipa" ]; then
+			    get_freeipa_info
+		        else
+			    write_string_param freeipa_domain "$(get_domain_from_dns)"
+			    if [ "$auth_type" = "ldap" -o "$auth_type" = "krb5" ]; then
+			        domain="$(read_current)"
+			        write_string_param current_domain "$domain"
+                            elif [ "$auth_type" = "local" ]; then
+                                write_string_param current_domain ""
+			    fi
+		        fi
+		        if [ -z "$domain" ]; then
+		            domain="$(get_domain_from_dns)"
+		        fi
+                        write_string_param ldap_domain "$domain"
+		        srv="false"
+		        #rpm -q task-auth-ad &>/dev/null && srv="true"
+		        rpm -q task-auth-ad-sssd &>/dev/null && srv="true"
+		        write_bool_param "type_ad_available" "$srv"
+                        srv="false"
+		        rpm -q gpupdate &>/dev/null && srv="true"
+		        write_bool_param "gpupdate_available" "$srv"
+		        srv="false"
+		        rpm -q task-auth-freeipa &>/dev/null && srv="true"
+		        write_bool_param "type_freeipa_available" "$srv"
 		    fi
-		    if [ "$auth_type" = "freeipa" ]; then
-			get_freeipa_info
-		    else
-			write_string_param freeipa_domain "$(get_domain_from_dns)"
-			if [ "$auth_type" = "ldap" -o "$auth_type" = "krb5" ]; then
-			    domain="$(read_current)"
-			    write_string_param current_domain "$domain"
-                        elif [ "$auth_type" = "local" ]; then
-                            write_string_param current_domain ""
-			fi
-		    fi
-		    if [ -z "$domain" ]; then
-		        domain="$(get_domain_from_dns)"
-		    fi
-                    write_string_param ldap_domain "$domain"
-		    srv="false"
-		    #rpm -q task-auth-ad &>/dev/null && srv="true"
-		    rpm -q task-auth-ad-sssd &>/dev/null && srv="true"
-		    write_bool_param "type_ad_available" "$srv"
-                    srv="false"
-		    rpm -q gpupdate &>/dev/null && srv="true"
-		    write_bool_param "gpupdate_available" "$srv"
-		    srv="false"
-		    rpm -q task-auth-freeipa &>/dev/null && srv="true"
-		    write_bool_param "type_freeipa_available" "$srv"
 		    ;;
 	    write)
-              #echo "$(set|grep -a "in_")" >&2
-              case "$in_auth_type" in
-                local)
-                    /usr/sbin/system-auth write local
-                    gpupdate_setup local
-                    ;;
-                ldap)
-                    [ "$in_ldap_ssl" == "on" ] && ldap_uri="ldaps://" || ldap_uri="ldap://"
-                    /usr/sbin/system-auth write ldap "$in_ldap_basedn" "$ldap_uri$in_ldap_host"
-                    ;;
-                krb5)
-                    if [ "$in_ldap_domain" = "local" ]; then
+              if [ "$in__objects" = "set_settings_values" ]; then
+                set_additional_settings_values
+              else
+                  #echo "$(set|grep -a "in_")" >&2
+                  case "$in_auth_type" in
+                    local)
                         /usr/sbin/system-auth write local
-                    else
-                        if [ "$in_ccreds" = "#t" ]; then
-                            auth_type=krb5_ccreds
+                        gpupdate_setup local
+                        ;;
+                    ldap)
+                        [ "$in_ldap_ssl" == "on" ] && ldap_uri="ldaps://" || ldap_uri="ldap://"
+                        /usr/sbin/system-auth write ldap "$in_ldap_basedn" "$ldap_uri$in_ldap_host"
+                        ;;
+                    krb5)
+                        if [ "$in_ldap_domain" = "local" ]; then
+                            /usr/sbin/system-auth write local
                         else
-                            auth_type=krb5
-                        fi
-                        if [ -n "$in_ldap_domain" ]; then
-                            # Test domain available
-                            if ! resolve "$in_ldap_domain" &>/dev/null ;then
-                                write_error "`_ "Unable to find specified domain"`"
+                            if [ "$in_ccreds" = "#t" ]; then
+                                auth_type=krb5_ccreds
                             else
-                                # Test Astra Linux Directory
-                                ldap_server="ldap://$in_ldap_domain"
-                                if ! ldapsearch -x -H "$ldap_server" -s base &>/dev/null ;then
-                                    ldap_server="ldaps://ldap.$in_ldap_domain"
-                                fi
-                                err="$(/usr/sbin/system-auth write $auth_type "$(host_2_dn "$in_ldap_domain")" "$ldap_server" 2>&1)"
-                                if [ $? -ne 0 ]; then
-                                    write_error "`_ "Domain does not set:"` $err"
+                                auth_type=krb5
+                            fi
+                            if [ -n "$in_ldap_domain" ]; then
+                                # Test domain available
+                                if ! resolve "$in_ldap_domain" &>/dev/null ;then
+                                    write_error "`_ "Unable to find specified domain"`"
+                                else
+                                    # Test Astra Linux Directory
+                                    ldap_server="ldap://$in_ldap_domain"
+                                    if ! ldapsearch -x -H "$ldap_server" -s base &>/dev/null ;then
+                                        ldap_server="ldaps://ldap.$in_ldap_domain"
+                                    fi
+                                    err="$(/usr/sbin/system-auth write $auth_type "$(host_2_dn "$in_ldap_domain")" "$ldap_server" 2>&1)"
+                                    if [ $? -ne 0 ]; then
+                                        write_error "`_ "Domain does not set:"` $err"
+                                    fi
                                 fi
                             fi
                         fi
-                    fi
-                    ;;
-                multi)
-                    ;;
-                pkcs11)
-                    ;;
-                ad)
-                    output="$(/usr/sbin/system-auth write ad "$in_ad_domain" "$in_ad_host" "$in_ad_workgroup" "$in_admin_username" "$in_admin_password" 2>&1)"
-                    [ "$output" = "Netbios name should not be more 15 chars" ] && output="`_ "Netbios name should not be more 15 chars"`"
-                    [ "$output" = "Unable to find specified domain" ] && output="`_ "Unable to find specified domain"`"
-                    [ "$output" = "Cannot contact KDC for realm" ] && output="`_ "Cannot contact KDC for realm"`"
-                    [ "$output" = "Unknown administrator name" ] && output="`_ "Unknown administrator name"`"
-                    [ "$output" = "Preauthentication failed" ] && output="`_ "Preauthentication failed"`"
-                    [ "$output" = "Wrong password" ] && output="`_ "Wrong password"`"
-                    [ "$output" = "Perhaps the password has expired" ] && output="`_ "Perhaps the password has expired"`"
-                    (echo "$output" | grep "^Joined '.*' to dns domain '.*'$" && gpupdate_setup "$in_group_policy") || write_error "`_ "Unable to join to Active Directory domain:"` $output"
-                    ;;
-                freeipa)
-                    output="$(/usr/sbin/system-auth write freeipa "$in_ad_domain" "$in_ad_host" "$in_admin_username" "$in_admin_password" 2>&1)"
-                    echo "$output" | grep "Unable to find specified domain" ] && output="`_ "Unable to find specified domain"`"
-                    echo "$output" | grep "^Unable to find IPA Server to join" && output="`_ "Unable to find IPA Server to join"`"
-                    echo "$output" | grep "Password incorrect while getting initial credentials" && output="`_ "Incorrect administrator password"`"
-                    echo "$output" | grep "^Client configuration complete.$" || write_error "`_ "Unable to join to FreeIPA domain:"` $output"
-                    ;;
-                *)
-                    ;;
-              esac
+                        ;;
+                    multi)
+                        ;;
+                    pkcs11)
+                        ;;
+                    ad)
+                        output="$(/usr/sbin/system-auth write ad "$in_ad_domain" "$in_ad_host" "$in_ad_workgroup" "$in_admin_username" "$in_admin_password" 2>&1)"
+                        [ "$output" = "Netbios name should not be more 15 chars" ] && output="`_ "Netbios name should not be more 15 chars"`"
+                        [ "$output" = "Unable to find specified domain" ] && output="`_ "Unable to find specified domain"`"
+                        [ "$output" = "Cannot contact KDC for realm" ] && output="`_ "Cannot contact KDC for realm"`"
+                        [ "$output" = "Unknown administrator name" ] && output="`_ "Unknown administrator name"`"
+                        [ "$output" = "Preauthentication failed" ] && output="`_ "Preauthentication failed"`"
+                        [ "$output" = "Wrong password" ] && output="`_ "Wrong password"`"
+                        [ "$output" = "Perhaps the password has expired" ] && output="`_ "Perhaps the password has expired"`"
+                        (echo "$output" | grep "^Joined '.*' to dns domain '.*'$" && gpupdate_setup "$in_group_policy") || write_error "`_ "Unable to join to Active Directory domain:"` $output"
+                        ;;
+                    freeipa)
+                        output="$(/usr/sbin/system-auth write freeipa "$in_ad_domain" "$in_ad_host" "$in_admin_username" "$in_admin_password" 2>&1)"
+                        echo "$output" | grep "Unable to find specified domain" ] && output="`_ "Unable to find specified domain"`"
+                        echo "$output" | grep "^Unable to find IPA Server to join" && output="`_ "Unable to find IPA Server to join"`"
+                        echo "$output" | grep "Password incorrect while getting initial credentials" && output="`_ "Incorrect administrator password"`"
+                        echo "$output" | grep "^Client configuration complete.$" || write_error "`_ "Unable to join to FreeIPA domain:"` $output"
+                        ;;
+                    *)
+                        ;;
+                  esac
+              fi
               ;;
 	esac
 }

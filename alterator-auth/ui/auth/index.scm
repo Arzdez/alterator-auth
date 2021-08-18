@@ -70,6 +70,9 @@
          (form-value-list))
       (form-update-value-list '("current_domain") (woo-read-first "/auth")))))
 
+;;; Settings button
+(define (ui-additional-settings)
+    (form-popup "/auth/additional-settings"))
 
 (define (ui-init)
     (let ((data (woo-read-first "/auth")))
@@ -172,6 +175,11 @@
         ))
 
     (label)
+
+    (hbox align "left"
+	(document:id settings-button (button name "settings" text (_ "SSSD settings...") (when clicked (ui-additional-settings)))))
+
+	(label)
 
     (groupbox columns "100" title (_ "Attention: ")
 	(label text (bold (_ "Domain change needs reboot for normal operation"))))
