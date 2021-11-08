@@ -203,10 +203,9 @@ write_profile()
             /usr/sbin/control system-auth "sss"
             write_nsswitch "passwd" "files sss"
             write_nsswitch "shadow" "tcb files sss"
-            if [ -x /usr/bin/rolelst ]; then
-                write_nsswitch "group" "files [SUCCESS=merge] sss role"
-            else
-                write_nsswitch "group" "files [SUCCESS=merge] sss"
+            write_nsswitch "group" "files [SUCCESS=merge] sss"
+            if [ -x /etc/control.d/facilities/libnss-role ]; then
+                control libnss-role enabled
             fi
         else
             /usr/sbin/control system-auth "$scheme"
@@ -224,10 +223,9 @@ write_profile()
             /usr/sbin/control system-auth "$scheme"
 	    write_nsswitch "passwd" "files $scheme"
 	    write_nsswitch "shadow" "tcb files $scheme"
-	    if [ -x /usr/bin/rolelst ]; then
-	        write_nsswitch "group" "files [SUCCESS=merge] $scheme role"
-	    else
-	        write_nsswitch "group" "files [SUCCESS=merge] $scheme"
+	    write_nsswitch "group" "files [SUCCESS=merge] $scheme"
+	    if [ -x /etc/control.d/facilities/libnss-role ]; then
+                control libnss-role enabled
 	    fi
 	    ;;
     esac
