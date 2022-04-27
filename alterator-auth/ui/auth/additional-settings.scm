@@ -83,8 +83,8 @@
     (dyndns-interval-activity)
 )
 
-width 600
-height 400
+width 750
+height 450
 
 (gridbox
     columns "100;0"
