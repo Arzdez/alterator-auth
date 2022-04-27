@@ -131,7 +131,7 @@ height 450
     (label)(label)
 
     (hbox colspan 2 align "right"
-        (button name "apply" text (_ "Apply") (when clicked (ui-apply)))
+        (button name "apply" text (_ "OK") (when clicked (ui-apply)(ui-exit)))
 	    (button name "cancel" text (_ "Cancel") (when clicked (ui-exit))))
 )
 
