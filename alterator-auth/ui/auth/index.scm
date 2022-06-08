@@ -32,6 +32,17 @@
       ""))
 
 ;;; Apply button
+(define (restore-configs)
+  (if (and (form-value "restore_conf")
+       (form-confirm (_ "Do you really want to restore configuration files to default (smb.conf, krb5.conf, sssd.conf)?")))
+       (catch/message
+			(lambda()
+				(woo-write "/auth/restore_configs")
+			)
+       )
+  )
+  (ui-commit)
+)
 (define (ui-commit)
   (if (not (or (string=? (form-value "auth_type") "ad")
                (string=? (form-value "auth_type") "freeipa") ))
@@ -184,11 +195,15 @@
     (groupbox columns "100" title (_ "Attention: ")
 	(label text (bold (_ "Domain change needs reboot for normal operation"))))
 
+    (separator)
+    (checkbox text(_"Restore default configuration files (smb.conf, krb5.conf, sssd.conf).") name "restore_conf")
+    (separator)
+
     (label)
     (if (global 'frame:next)
     (label)
     (hbox align "left"
-	(document:id apply-button (button name "apply" text (_ "Apply") (when clicked (ui-commit))))))
+	(document:id apply-button (button name "apply" text (_ "Apply") (when clicked (restore-configs))))))
 )
 
 ;;; Logic

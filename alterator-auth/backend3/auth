@@ -294,6 +294,11 @@ set_additional_settings_values()
 	fi
 }
 
+restore_configs()
+{
+	default-restore all
+}
+
 txt_record()
 {
 	echo "$2" |
@@ -463,6 +468,8 @@ on_message()
 	    write)
               if [ "$in__objects" = "set_settings_values" ]; then
                 set_additional_settings_values
+              elif [ "$in__objects" = "restore_configs" ]; then
+                restore_configs
               else
                   #echo "$(set|grep -a "in_")" >&2
                   case "$in_auth_type" in
