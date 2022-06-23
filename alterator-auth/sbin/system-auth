@@ -405,6 +405,7 @@ MAPPING_PARAMS_WINBIND
 	wins support = no
 $WINBIND_PARAMS
 $MAPPING_PARAMS
+	machine password timeout = 0
 ;	encrypt passwords = true
 ;	dns proxy = no
 ;	socket options = TCP_NODELAY
@@ -439,6 +440,7 @@ AD_PARAMS
 	    ini_config_set "$sssd_conf" "domain/$domain" '; cache_credentials' 'false'
 	    ini_config_set "$sssd_conf" "domain/$domain" 'ad_gpo_ignore_unreadable' 'true'
 	    ini_config_set "$sssd_conf" "domain/$domain" 'ad_gpo_access_control' 'permissive'
+	    ini_config_set "$sssd_conf" "domain/$domain" 'ad_update_samba_machine_account_password' 'true'
             chmod 0600 "$sssd_conf"
 	else
 	    pam_winbind_cfg='/etc/security/pam_winbind.conf'
