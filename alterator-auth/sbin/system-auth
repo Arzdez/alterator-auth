@@ -313,6 +313,23 @@ set_domain_group_mapping()
 	echo "Domain Admins:localadmins" >> /etc/role
 }
 
+set_domain_group_mapping_for_ad()
+{
+    local domain owndomainsid domainusers domainadmins retval=0
+
+    domain="$(echo $1 | tr '[:lower:]' '[:upper:]')"
+    # Get domain SID
+    owndomainsid="$(net getdomainsid | grep "SID for domain $domain is:" |  sed 's/.*: \(S-1-5-21-.*\).*/\1/')"
+    [ -n "$owndomainsid" ] || return 1
+
+    # Add domain groups by its name
+    domainusers="$(wbinfo --sid-to-fullname="$owndomainsid-513" | sed 's/\(.*\)\ [0-9]\+/\1/')"
+    domainadmins="$(wbinfo --sid-to-fullname="$owndomainsid-512" | sed 's/\(.*\)\ [0-9]\+/\1/')"
+    [ -z "$domainadmins" ] || roleadd "$domainadmins" localadmins || retval=1
+    [ -z "$domainusers" ] || roleadd "$domainusers" users || retval=1
+    return $retval
+}
+
 adapt_dm()
 {
 	export shell_ini_config_prefix=''
@@ -453,8 +470,6 @@ AD_PARAMS
 	    # Remove krb5_ccache_type=FILE from /etc/pam.d/system-auth-winbind
 	    sed -i 's/ krb5_ccache_type=FILE//g' /etc/pam.d/system-auth-winbind
 	fi
-	# Map domain groups to local Unix groups
-	set_domain_group_mapping
 
 	# Set time sync from dc for client
 	write_pool "$domain"
@@ -598,7 +613,6 @@ join_ad_domain()
     local user="$2"
     local password="$3"
     local host_name="$4"
-
     [ -x /usr/bin/kinit ] || fatal "krb5-kinit is required for join to Active Directory domain"
     [ -x "$net_cmd" ] || fatal "$net_cmd from samba-common or samba-common-tools package is required for join to Active Directory domain"
     [ -n "$(ls /etc/init.d/{winbind,sssd} 2>/dev/null)" ] || fatal "samba-winbind or sssd-ad is required for join to Active Directory domain"
@@ -789,6 +803,8 @@ case "$action" in
                     enable_service sssd
                 fi
                 enable_service winbind
+                # Adding roles for domain users
+                set_domain_group_mapping_for_ad "$3" || set_domain_group_mapping
             else
                 exit 1
             fi
