@@ -378,6 +378,7 @@ write_ad_conf()
 	local workgroup="$3"
 
 	# Prepare values for configuration
+	[ -z "$domain" ] && echo "Please set domain name to continue joining" >&2 && exit 1
 	[ -z "$hostname" ] && hostname="$(hostname -s)"
 	[ -z "$workgroup" ] && workgroup="${domain/.*/}"
 
@@ -598,6 +599,8 @@ set_hostname()
     local FQDN="$(lower "$1")"
     if [ -n "$FQDN" ]; then
         shell_config_set "/etc/sysconfig/network" "HOSTNAME" "$FQDN"
+        [ -f "/etc/hostname" ] && \
+          echo "$FQDN" > "/etc/hostname"
     fi
 }
 
