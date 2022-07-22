@@ -379,7 +379,13 @@ write_ad_conf()
 
 	# Prepare values for configuration
 	[ -z "$domain" ] && echo "Please set domain name to continue joining" >&2 && exit 1
-	[ -z "$hostname" ] && hostname="$(hostname -s)"
+	[ -z "$hostname" ] && hostname="$(hostname -s)" || \
+	# hostname condition by RFC952
+	if ! echo "$hostname" | grep '^[0-9a-zA-Z-]\+$' | grep  -q -v '\(^-\)\|\(-$\)\|\(--\)'; then
+	    echo -e "Invalid characters in the name. Use letters, numbers and possibly separate them with a sign '-'" >&2
+	    exit 1
+	fi
+
 	[ -z "$workgroup" ] && workgroup="${domain/.*/}"
 
 	# Check hostname length

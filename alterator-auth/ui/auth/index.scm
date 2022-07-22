@@ -9,7 +9,9 @@
 ;;; Check netbios name lenght
 (define (check-netbios-name)
   (if (> (string-length (form-value "ad_host")) 15)
-      (woo-error (_ "Netbios name should not be more 15 chars"))))
+      (woo-error (_ "Netbios name should not be more 15 chars")))
+  (if (not (string-match "^([0-9a-zA-Z-])+$" (form-value "ad_host")))
+      (woo-error (_ "Invalid characters in the name. Use letters, numbers and possibly separate them with a sign '-'"))))
 
 ;;; Check for empty values if Active Directory setting up
 (define (field-check-values)
