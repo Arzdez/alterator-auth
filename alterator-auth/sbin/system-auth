@@ -1,6 +1,33 @@
 #!/bin/sh
 
-echo $0 $@ | grep -q '[[:space:]]-d\([[:space:]]\|$\)' && set -x
+OU=""
+win2003=""
+
+TEMP=$(getopt -o 'd' --long 'windows2003,createcomputer:' -- "$@")
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+eval set -- "$TEMP"
+unset TEMP
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    '-d') set -x; shift;;
+    '--createcomputer') shift; OU="createcomputer=\"$1\""; shift;;
+    '--windows2003')  win2003="true"; shift;;
+    --) shift;;
+    *) break;;
+  esac
+done
+
+# Check for krb5 version for join to Windows 2003 (DES support is removed in release 1.18)
+krb5_version="$(rpm -q --qf '%{version}' krb5-kinit)"
+krb5_version_without_des="1.18"
+krb5_version_check="$(rpmvercmp "$krb5_version" "$krb5_version_without_des")"
+if [ "$krb5_version_check" != "-1" -a "$win2003" = "true" ]; then
+    echo "Join to Windows 2003 is not supported by krb5 since 1.18 (current version is $krb5_version)"
+    exit 1
+fi
 
 rdelim='[[:space:]]\+'
 wdelim=' '
@@ -410,6 +437,12 @@ MAPPING_PARAMS_WINBIND_SSSD
 MAPPING_PARAMS_WINBIND
 )"
 	fi
+	if [ "$win2003" = "true" ]; then
+            WIN2003_PARAMS="$(cat << WINDOWS2003_PARAMS
+	client min protocol = NT1
+WINDOWS2003_PARAMS
+)"
+	fi
 
 	# Write main parameters
 	CONFIG="$(cat << AD_PARAMS
@@ -422,6 +455,7 @@ MAPPING_PARAMS_WINBIND
 	wins support = no
 $WINBIND_PARAMS
 $MAPPING_PARAMS
+$WIN2003_PARAMS
 	machine password timeout = 0
 ;	encrypt passwords = true
 ;	dns proxy = no
@@ -602,6 +636,11 @@ set_kerberos_realm()
     krb5_config_set "$krb5_conf" "libdefaults" "default_ccache_name" "KEYRING:persistent:%{uid}"
     # Prevent GSS failure in sssd (Server not found in Kerberos database)
     krb5_config_set "$krb5_conf" "libdefaults" "rdns" "false"
+    if [ "$win2003" = "true" ]; then
+        krb5_config_set "$krb5_conf" "libdefaults" "default_tgs_enctypes" "aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 rc4-hmac des-cbc-crc des3-cbc-sha1 des-cbc-md5"
+	krb5_config_set "$krb5_conf" "libdefaults" "default_tkt_enctypes" "aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 rc4-hmac des-cbc-crc des3-cbc-sha1 des-cbc-md5"
+	krb5_config_set "$krb5_conf" "libdefaults" "preferred_enctypes" "aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 rc4-hmac des-cbc-crc des3-cbc-sha1 des-cbc-md5"
+    fi
     chmod a+r "$krb5_conf"
 }
 
@@ -640,7 +679,7 @@ join_ad_domain()
 	set_hostname "$host_name.$ldomain"
 
 	# Join to domain
-	$net_cmd ads join -U"$user%$password" --no-dns-updates
+	$net_cmd ads join -U"$user%$password" --no-dns-updates $OU
 
 	[ "$?" -ne 0 ] && return 1
 
@@ -687,7 +726,7 @@ join_ipa_domain()
 
 usage() {
     cat << USAGE.
-Usage: system-auth [-d] action [object...]
+Usage: system-auth [options] action [object...]
 Show or change system authentication scheme.
 
 Options:
@@ -710,7 +749,7 @@ Use LDAP authentication
   system-auth write ldap dc=domain,dc=name ldap://127.0.0.1
 
 Use Active Directory authentication
-  system-auth write ad domain.name host workgroup Administrator password
+  system-auth write ad domain.name host workgroup Administrator password [--windows2003] [--createcomputer="ou=COMPUTEROU]"
 
 Use FreeIPA authentication
   system-auth write freeipa domain.name host admin password
