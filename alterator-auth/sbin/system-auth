@@ -658,9 +658,19 @@ join_ad_domain()
 {
     local ldomain="$1"
     local domain="$(upper $ldomain)"
-    local user="$2"
-    local password="$3"
-    local host_name="$4"
+    local user=
+    local use_krb_ccache=
+    local password=
+    local host_name=
+
+    if [ $# -gt 2 ]; then
+        user="$2"
+        password="$3"
+        host_name="$4"
+    else
+        use_krb_ccache=1
+        host_name="$2"
+    fi
     [ -x /usr/bin/kinit ] || fatal "krb5-kinit is required for join to Active Directory domain"
     [ -x "$net_cmd" ] || fatal "$net_cmd from samba-common or samba-common-tools package is required for join to Active Directory domain"
     [ -n "$(ls /etc/init.d/{winbind,sssd} 2>/dev/null)" ] || fatal "samba-winbind or sssd-ad is required for join to Active Directory domain"
@@ -668,10 +678,17 @@ join_ad_domain()
     # Prepare Kerberos environment
     set_kerberos_realm "$ldomain"
 
-    # Get Kerberos ticket for administrator
-    output="$(echo "$password" | kinit "$user@$domain" 2>&1 >/dev/null)"
+    # Get or check Kerberos ticket for administrator
+    if [ -n "$use_krb_ccache" ]; then
+        output="$(klist 2>&1 >/dev/null)"
+    else
+        output="$(echo "$password" | kinit "$user@$domain" 2>&1 >/dev/null)"
+    fi
     if [ "$?" -ne 0 ]; then
 	#echo "ERROR: $output"
+	error_ccache_kcm_server="$(echo "$output"|grep '^klist: No KCM server found while resolving ccache')"
+	error_ccache_not_found="$(echo "$output"|grep '^klist: No credentials cache found')"
+	error_ccache_keyring_not_found="$(echo "$output"|grep '^klist: Credentials cache keyring .* not found')"
 	error_unknown_kdc="$(echo "$output"|grep '^kinit: Cannot contact any KDC for realm')"
 	error_bad_username="$(echo "$output"|grep '^kinit: Client not found in Kerberos database while getting initial credentials$')"
 	error_bad_preauth="$(echo "$output"|grep '^kinit: Preauthentication failed while getting initial credentials$')"
@@ -682,23 +699,35 @@ join_ad_domain()
 	[ -n "$error_bad_preauth" ] && echo "Preauthentication failed" >&2
 	[ -n "$error_bad_credentials" ] && echo "Wrong password" >&2
 	[ -n "$error_pass_expired" ] && echo "Perhaps the password has expired" >&2
+	[ -n "$error_ccache_not_found" ] && echo "No credentials cache found" >&2
+	[ -n "$error_ccache_keyring_not_found" ] && echo "No credentials cache found" >&2
+	[ -n "$error_ccache_kcm_server" ] && echo "No KCM server found while resolving ccache" >&2
 	return 1
     else
 	# Set correct FQDN
 	set_hostname "$host_name.$ldomain"
 
 	# Join to domain
-	$net_cmd ads join -U"$user%$password" --no-dns-updates $OU
+	if [ -n "$use_krb_ccache" ]; then
+	    $net_cmd ads join --use-kerberos=required --no-dns-updates -k $OU
+	else
+	    $net_cmd ads join -U"$user%$password" --no-dns-updates $OU
+	fi
 
 	[ "$?" -ne 0 ] && return 1
 
 	# Register machine in domain DNS
 	if [ -n "$host_name" ]; then
-		$net_cmd ads dns register -U"$user%$password" "$host_name.$ldomain"
+		if [ -n "$use_krb_ccache" ]; then
+		    $net_cmd ads dns register --use-kerberos=required -k "$host_name.$ldomain"
+		else
+		    $net_cmd ads dns register -U"$user%$password" "$host_name.$ldomain"
+		fi
 	fi
 
-	# Destroy ticket
-	kdestroy &>/dev/null
+	# Destroy ticket if credential cache not used
+	[ -n "$use_krb_ccache" ] ||
+	    kdestroy -A &>/dev/null
     fi
 }
 
@@ -757,8 +786,8 @@ Use local authentication
 Use LDAP authentication
   system-auth write ldap dc=domain,dc=name ldap://127.0.0.1
 
-Use Active Directory authentication
-  system-auth write ad domain.name host workgroup Administrator password [--windows2003] [--createcomputer="ou=COMPUTEROU]"
+Use Active Directory authentication (using default kerberos ccache without Administrator password)
+  system-auth write ad domain.name host workgroup [Administrator password] [--windows2003] [--createcomputer="ou=COMPUTEROU]"
 
 Use FreeIPA authentication
   system-auth write freeipa domain.name host admin password
@@ -843,7 +872,11 @@ case "$action" in
                 # Store configuration parameters: domain [hostname] [workgroup]
                 write_ad_conf "$1" "$2" "$3"
                 # Join computer to domain
-                join_ad_domain "$1" "$4" "$5" "$2"
+                if [ $# -ge 5 ]; then
+                    join_ad_domain "$1" "$4" "$5" "$2"
+                else
+                    join_ad_domain "$1" "$2"
+                fi
                 [ "$?" -ne 0 ] && exit 1
                 # prepare auth service
                 if [ -e "$sssd_conf" ]; then

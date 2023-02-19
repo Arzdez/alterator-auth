@@ -2,7 +2,7 @@
 
 ;;; Logic
 (define (ui-write)
-  (document:end (form-value-list '("admin_username" "admin_password" "group_policy"))))
+  (document:end (form-value-list '("admin_username" "admin_password" "group_policy" "use_krb_ccache"))))
 
 ;;; Default administrator name for domain types
 (define (get-admin-name)
@@ -20,10 +20,17 @@
       (global 'gpupdate-available)
       #f )))
 
+;;; Use default kerberos credential cache checkbox visibility for domain types
+(define (get-krb-ccache-visibility)
+  (let ((type (global 'domain-type)))
+  (if (string=? type "ad")
+      #t #f )))
+
 ;;; Init dialog
 (define (ui-init)
   (gpupdate-checkbox visibility (get-gpupdate-visibility))
   (gpupdate-checkbox value (global 'gpupdate-available))
+  (krb-ccache-checkbox visibility (get-krb-ccache-visibility))
 
   (form-update-value "admin_username" (get-admin-name))
   (form-bind "ok" "click" ui-write)
@@ -40,6 +47,10 @@
 
     (document:id gpupdate-checkbox
       (checkbox colspan 2 align "left" visibility #f text(_ "Enable Group Policy") name "group_policy" value #f))
+    (spacer)
+
+    (document:id krb-ccache-checkbox
+      (checkbox colspan 2 align "left" visibility #t text(_ "Use default kerberos credential cache") name "use_krb_ccache" value #f))
     (spacer)
 
     (hbox colspan 2 align "left"

@@ -513,7 +513,11 @@ on_message()
                     pkcs11)
                         ;;
                     ad)
-                        output="$(/usr/sbin/system-auth write ad "$in_ad_domain" "$in_ad_host" "$in_ad_workgroup" "$in_admin_username" "$in_admin_password" 2>&1)"
+                        if [ "$in_use_krb_ccache" = "#t" ]; then
+                            output="$(/usr/sbin/system-auth write ad "$in_ad_domain" "$in_ad_host" "$in_ad_workgroup" 2>&1)"
+                        else
+                            output="$(/usr/sbin/system-auth write ad "$in_ad_domain" "$in_ad_host" "$in_ad_workgroup" "$in_admin_username" "$in_admin_password" 2>&1)"
+                        fi
                         [ "$output" = "Netbios name should not be more 15 chars" ] && output="`_ "Netbios name should not be more 15 chars"`"
                         [ "$output" = "Unable to find specified domain" ] && output="`_ "Unable to find specified domain"`"
                         [ "$output" = "Cannot contact KDC for realm" ] && output="`_ "Cannot contact KDC for realm"`"
