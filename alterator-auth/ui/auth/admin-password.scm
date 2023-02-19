@@ -5,19 +5,27 @@
   (document:end (form-value-list '("admin_username" "admin_password" "group_policy"))))
 
 ;;; Default administrator name for domain types
-(define (get-admin-name type)
+(define (get-admin-name)
+  (let ((type (global 'domain-type)))
   (if (string=? type "ad")
       "Administrator"
       (if (string=? type "freeipa")
           "admin"
-          "")))
+          ""))))
+
+;;; Group policy checkbox visibility for domain types
+(define (get-gpupdate-visibility)
+  (let ((type (global 'domain-type)))
+  (if (string=? type "ad")
+      (global 'gpupdate-available)
+      #f )))
 
 ;;; Init dialog
 (define (ui-init)
-  (gpupdate-checkbox visibility (global 'gpupdate-available))
+  (gpupdate-checkbox visibility (get-gpupdate-visibility))
   (gpupdate-checkbox value (global 'gpupdate-available))
 
-  (form-update-value "admin_username" (get-admin-name (global 'domain-type)))
+  (form-update-value "admin_username" (get-admin-name))
   (form-bind "ok" "click" ui-write)
   (form-bind "cancel" "click" document:end))
 
