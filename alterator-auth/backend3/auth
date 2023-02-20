@@ -428,6 +428,7 @@ on_message()
 		        get_additional_settings_values
 		    else
 		        local domain=''
+		        local ad_auth_service='sssd'
 		        auth_type="$(/usr/sbin/system-auth status |cut -f1 -d ' ')"
 		        write_string_param "auth_type" "$auth_type"
 		        get_ldap
@@ -438,6 +439,11 @@ on_message()
 		        else
 			    write_string_param ad_domain "$(get_domain_from_dns)"
 		        fi
+		        system_auth_type="$(/usr/sbin/control system-auth status 2>/dev/null |cut -f1 -d ' ')"
+		        if [ "$system_auth_type" = "winbind" ]; then
+		            ad_auth_service='winbind'
+		        fi
+		        write_string_param ad_auth_service "$ad_auth_service"
 		        if [ "$auth_type" = "freeipa" ]; then
 			    get_freeipa_info
 		        else
@@ -513,10 +519,13 @@ on_message()
                     pkcs11)
                         ;;
                     ad)
+                        use_winbind=""
+                        [ "$in_ad_auth_service" != "winbind" ] ||
+                            use_winbind="--winbind"
                         if [ "$in_use_krb_ccache" = "#t" ]; then
-                            output="$(/usr/sbin/system-auth write ad "$in_ad_domain" "$in_ad_host" "$in_ad_workgroup" 2>&1)"
+                            output="$(/usr/sbin/system-auth write ad "$in_ad_domain" "$in_ad_host" "$in_ad_workgroup" $use_winbind 2>&1)"
                         else
-                            output="$(/usr/sbin/system-auth write ad "$in_ad_domain" "$in_ad_host" "$in_ad_workgroup" "$in_admin_username" "$in_admin_password" 2>&1)"
+                            output="$(/usr/sbin/system-auth write ad "$in_ad_domain" "$in_ad_host" "$in_ad_workgroup" "$in_admin_username" "$in_admin_password" $use_winbind 2>&1)"
                         fi
                         [ "$output" = "Netbios name should not be more 15 chars" ] && output="`_ "Netbios name should not be more 15 chars"`"
                         [ "$output" = "Unable to find specified domain" ] && output="`_ "Unable to find specified domain"`"

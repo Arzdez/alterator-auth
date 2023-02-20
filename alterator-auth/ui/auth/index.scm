@@ -90,7 +90,7 @@
 
 (define (ui-init)
     (let ((data (woo-read-first "/auth")))
-    (form-update-value-list '("current_domain" "ccreds" "ldap_domain" "auth_type" "ad_domain" "ad_workgroup" "freeipa_domain") data)
+    (form-update-value-list '("current_domain" "ccreds" "ldap_domain" "auth_type" "ad_domain" "ad_workgroup" "ad_auth_service" "freeipa_domain") data)
     (set-global! 'gpupdate-available (woo-get-option data 'gpupdate_available #f))
 
     ;;; show warnings
@@ -164,6 +164,16 @@
 	(spacer)
         (label text (_ "Computer name:"))
         (edit name "ad_host")
+	(spacer)
+
+	(spacer)
+        (label)
+        (document:id auth-sssd-group (radio name "ad_auth_service" value "sssd" text (_ "SSSD (System Security Services Daemon)") state #t))
+	(spacer)
+
+	(spacer)
+        (label)
+        (document:id auth-winbind-group (radio name "ad_auth_service" value "winbind" text (_ "Winbind (NSS daemon for NT servers)")))
 	(spacer)
         ))
     (label)

@@ -2,8 +2,9 @@
 
 OU=""
 win2003=""
+use_winbind=""
 
-TEMP=$(getopt -o 'd' --long 'windows2003,createcomputer:' -- "$@")
+TEMP=$(getopt -o 'd' --long 'windows2003,winbind,createcomputer:' -- "$@")
 if [ $? -ne 0 ]; then
     exit 1
 fi
@@ -15,6 +16,7 @@ while [[ $# -gt 0 ]]; do
     '-d') set -x; shift;;
     '--createcomputer') shift; OU="createcomputer=\"$1\""; shift;;
     '--windows2003')  win2003="true"; shift;;
+    '--winbind')  use_winbind="true"; shift;;
     --) shift;;
     *) break;;
   esac
@@ -242,7 +244,7 @@ write_profile()
         fi
 	    ;;
 	ad)
-	    if [ -e "$sssd_conf" ]; then
+	    if [ -e "$sssd_conf" -a -z "$use_winbind" ]; then
 		scheme="sss"
 	    else
 		scheme="winbind"
@@ -411,7 +413,7 @@ write_ad_conf()
 MAPPING_PARAMS_SAMBA3
 )"
 	else
-		if [ -e "$sssd_conf" ]; then
+		if [ -e "$sssd_conf" -a -z "$use_winbind" ]; then
 		    MAPPING_PARAMS="$(cat << MAPPING_PARAMS_SSSD
         idmap config * : range = 200000-2000200000
         idmap config * : backend = sss
@@ -426,7 +428,7 @@ MAPPING_PARAMS_SAMBA4
 		fi
 	fi
 
-	if [ -e "$sssd_conf" ]; then
+	if [ -e "$sssd_conf" -a -z "$use_winbind" ]; then
 	    WINBIND_PARAMS="$(cat << MAPPING_PARAMS_WINBIND_SSSD
 	winbind use default domain = yes
 	winbind enum users = no
@@ -439,6 +441,7 @@ MAPPING_PARAMS_WINBIND_SSSD
 	winbind use default domain = yes
 	winbind enum users = no
 	winbind enum groups = no
+	template homedir = /home/$domain/%U
 	winbind refresh tickets = yes
 	winbind offline logon = yes
 MAPPING_PARAMS_WINBIND
@@ -485,7 +488,7 @@ AD_PARAMS
 	# Set parameters for PAM modules
 	. shell-ini-config
 	shell_ini_config_prefix=''
-	if [ -e "$sssd_conf" ]; then
+	if [ -e "$sssd_conf" -a -z "$use_winbind" ]; then
 	    ini_config_set "$sssd_conf" 'sssd' 'services' 'nss, pam'
 	    ini_config_set "$sssd_conf" 'sssd' 'domains' "$domain"
 	    ini_config_set "$sssd_conf" "domain/$domain" 'id_provider' 'ad'
@@ -787,7 +790,7 @@ Use LDAP authentication
   system-auth write ldap dc=domain,dc=name ldap://127.0.0.1
 
 Use Active Directory authentication (using default kerberos ccache without Administrator password)
-  system-auth write ad domain.name host workgroup [Administrator password] [--windows2003] [--createcomputer="ou=COMPUTEROU]"
+  system-auth write ad domain.name host workgroup [Administrator password] [--windows2003] [--createcomputer="ou=COMPUTEROU"] [--winbind]
 
 Use FreeIPA authentication
   system-auth write freeipa domain.name host admin password
@@ -819,7 +822,10 @@ case "$action" in
 	[ "$current" = "ldap" -o "$current" = "krb5" ] && disable_service nslcd
 	[ "$current" = "ldap" -o "$current" = "krb5" ] && disable_service settime-rfc867
 	[ "$current" = "winbind" ] && disable_service winbind
-	[ "$current" = "sss" ] && disable_service sssd
+	if [ "$current" = "sss" ]; then
+	    disable_service sssd
+	    disable_service winbind
+	fi
 
     case "$object" in
         local)
@@ -879,7 +885,7 @@ case "$action" in
                 fi
                 [ "$?" -ne 0 ] && exit 1
                 # prepare auth service
-                if [ -e "$sssd_conf" ]; then
+                if [ -e "$sssd_conf" -a -z "$use_winbind" ]; then
 		    disable_service nscd
                     enable_service sssd
                 fi
