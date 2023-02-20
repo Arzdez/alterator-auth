@@ -437,7 +437,7 @@ MAPPING_PARAMS_SAMBA4
 MAPPING_PARAMS_WINBIND_SSSD
 )"
 	else
-	    MAPPING_PARAMS="$(cat << MAPPING_PARAMS_WINBIND
+	    WINBIND_PARAMS="$(cat << MAPPING_PARAMS_WINBIND
 	winbind use default domain = yes
 	winbind enum users = no
 	winbind enum groups = no
