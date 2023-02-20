@@ -20,11 +20,22 @@
       (global 'gpupdate-available)
       #f )))
 
-;;; Use default kerberos credential cache checkbox visibility for domain types
+;;; Use default kerberos credential cache (ccache) checkbox visibility for domain types
 (define (get-krb-ccache-visibility)
   (let ((type (global 'domain-type)))
   (if (string=? type "ad")
       #t #f )))
+
+;;; Enable or disable Username and Password edit boxes
+(define (set-userpass-activity state)
+  (form-update-activity '("admin_username") state)
+  (form-update-activity '("admin_password") state))
+
+;;; Update Username and Password edit boxes activity when kerberos ccache using
+(define (update-userpass-activity)
+  (if (form-value "use_krb_ccache")
+    (set-userpass-activity #f)
+    (set-userpass-activity #t)))
 
 ;;; Init dialog
 (define (ui-init)
@@ -50,7 +61,7 @@
     (spacer)
 
     (document:id krb-ccache-checkbox
-      (checkbox colspan 2 align "left" visibility #t text(_ "Use default kerberos credential cache") name "use_krb_ccache" value #f))
+      (checkbox colspan 2 align "left" visibility #t text(_ "Use default kerberos credential cache") name "use_krb_ccache" value #f (when changed (update-userpass-activity))))
     (spacer)
 
     (hbox colspan 2 align "left"
