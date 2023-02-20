@@ -662,11 +662,14 @@ join_ad_domain()
     local use_krb_ccache=
     local password=
     local host_name=
+    local krb_ccache_name=
 
     if [ $# -gt 2 ]; then
         user="$2"
         password="$3"
         host_name="$4"
+        krb_ccache_name="$(mktemp | sed "s/^/FILE:/")"
+        export KRB5CCNAME="$krb_ccache_name"
     else
         use_krb_ccache=1
         host_name="$2"
@@ -704,30 +707,27 @@ join_ad_domain()
 	[ -n "$error_ccache_kcm_server" ] && echo "No KCM server found while resolving ccache" >&2
 	return 1
     else
+        [ -z "$use_krb_ccache" ] ||
+            krb_ccache_name="$(klist 2>/dev/null | grep "Ticket cache:" | sed "s/Ticket cache: //")"
+
 	# Set correct FQDN
 	set_hostname "$host_name.$ldomain"
 
 	# Join to domain
-	if [ -n "$use_krb_ccache" ]; then
-	    $net_cmd ads join --use-kerberos=required --no-dns-updates -k $OU
-	else
-	    $net_cmd ads join -U"$user%$password" --no-dns-updates $OU
-	fi
+	$net_cmd ads join --use-kerberos=required --no-dns-updates --use-krb5-ccache="$krb_ccache_name" $OU
 
 	[ "$?" -ne 0 ] && return 1
 
 	# Register machine in domain DNS
 	if [ -n "$host_name" ]; then
-		if [ -n "$use_krb_ccache" ]; then
-		    $net_cmd ads dns register --use-kerberos=required -k "$host_name.$ldomain"
-		else
-		    $net_cmd ads dns register -U"$user%$password" "$host_name.$ldomain"
-		fi
+		$net_cmd ads dns register --use-kerberos=required --use-krb5-ccache="$krb_ccache_name" "$host_name.$ldomain"
 	fi
 
 	# Destroy ticket if credential cache not used
-	[ -n "$use_krb_ccache" ] ||
+	if [ -z "$use_krb_ccache" ]; then
 	    kdestroy -A &>/dev/null
+	    unset KRB5CCNAME
+	fi
     fi
 }
 
