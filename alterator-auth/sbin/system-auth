@@ -722,7 +722,7 @@ join_ad_domain()
 	# Exception for Sisyphus regular builds
 	if [ -z "$OS_VER" ]; then
 		IFS=: read -r OS_NAME OS_VER <<<"$(hostnamectl | sed -E -n 's/^.*Operating System: ([^0-9.]*) ([^\(\) ]*).*$/\1:\2/p')"
-	fi                             
+	fi
 
 	# Join to domain
 	$net_cmd ads join --use-kerberos=required --no-dns-updates --use-krb5-ccache="$krb_ccache_name" $OU osName="$OS_NAME" osVer="$OS_VER"
