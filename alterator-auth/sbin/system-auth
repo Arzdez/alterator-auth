@@ -3,8 +3,9 @@
 OU=""
 win2003=""
 use_winbind=""
+use_gpo=""
 
-TEMP=$(getopt -o 'd' --long 'windows2003,winbind,createcomputer:' -- "$@")
+TEMP=$(getopt -o 'd' --long 'windows2003,winbind,gpo,createcomputer:' -- "$@")
 if [ $? -ne 0 ]; then
     exit 1
 fi
@@ -17,6 +18,7 @@ while [[ $# -gt 0 ]]; do
     '--createcomputer') shift; OU="createcomputer=\"$1\""; shift;;
     '--windows2003')  win2003="true"; shift;;
     '--winbind')  use_winbind="true"; shift;;
+    '--gpo')  use_gpo="true"; shift;;
     --) shift;;
     *) break;;
   esac
@@ -81,6 +83,17 @@ rpm -q sssd &>/dev/null && ldap_auth_sssd="yes"
 
 #turn off auto expansion
 set -f
+
+gpupdate_setup()
+{
+    local gpupdate_cmd="/usr/sbin/gpupdate-setup"
+    rpm -q gpupdate &>/dev/null || return 0
+
+    $gpupdate_cmd enable
+    if [ "$1" = "local" -a -f /etc/gpupdate/gpupdate.ini ]; then
+        $gpupdate_cmd set-backend local
+    fi
+}
 
 # getting current auth
 get_status()
@@ -792,13 +805,13 @@ Show current authentication information
   system-auth status
 
 Use local authentication
-  system-auth write local
+  system-auth write local [--gpo]
 
 Use LDAP authentication
   system-auth write ldap dc=domain,dc=name ldap://127.0.0.1
 
 Use Active Directory authentication (using default kerberos ccache without Administrator password)
-  system-auth write ad domain.name host workgroup [Administrator password] [--windows2003] [--createcomputer="ou=COMPUTEROU"] [--winbind]
+  system-auth write ad domain.name host workgroup [Administrator password] [--windows2003] [--createcomputer="ou=COMPUTEROU"] [--winbind] [--gpo]
 
 Use FreeIPA authentication
   system-auth write freeipa domain.name host admin password
@@ -838,9 +851,12 @@ case "$action" in
     case "$object" in
         local)
             write_profile "$object"
+            if [ "$use_gpo" == "true" ]; then
+                gpupdate_setup local
+            fi
             ;;
         ldap|krb5*)
-	    check_avahi "$2"
+            check_avahi "$2"
             if  check_basedn "$1" && check_uri "$2"  ;then
                 if [ "$ldap_auth_sssd" = "yes" ]; then
                     rpm -q sssd-ldap sssd-krb5 &>/dev/null || fatal "LDAP authentication with SSSD requires both sssd-ldap and sssd-krb5 packages installed"
@@ -876,7 +892,7 @@ case "$action" in
             ;;
         ad)
             if  test -n "$1" ;then
-		check_avahi "$1"
+                check_avahi "$1"
                 test -x "$net_cmd" || fatal "Cannot find $net_cmd executable required to join to Active Directory domain"
                 # Check domain name in DNS
                 check_domain_in_dns "$1" || exit 1
@@ -894,19 +910,23 @@ case "$action" in
                 [ "$?" -ne 0 ] && exit 1
                 # prepare auth service
                 if [ -e "$sssd_conf" -a -z "$use_winbind" ]; then
-		    disable_service nscd
+                    disable_service nscd
                     enable_service sssd
                 fi
                 enable_service winbind
                 # Adding roles for domain users
                 set_domain_group_mapping_for_ad "$3" || set_domain_group_mapping
+                # Enable GPO
+                if [ "$use_gpo" == "true" ]; then
+                    gpupdate_setup
+                fi
             else
                 exit 1
             fi
             ;;
         freeipa)
             if  test -n "$1" ;then
-		check_avahi "$1"
+                check_avahi "$1"
                 test -x "$ipa_cmd" || fatal "Cannot find $ipa_cmd executable required to join to FreeIPA domain"
                 # Check domain name in DNS
                 check_domain_in_dns "$1" || exit 1
