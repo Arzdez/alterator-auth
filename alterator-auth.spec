@@ -4,13 +4,10 @@ Name: alterator-auth
 Version: 0.44.5
 Release: alt1
 
-%filter_from_requires /^samba-common$/d;/systemd-services/d;/^gpupdate$/d;/gpupdate-setup/d
-
-Source:%name-%version.tar
-
 Summary: Alterator module for system wide auth settings
 License: GPL
 Group: System/Configuration/Other
+
 Requires: alterator >= 4.7-alt4
 Requires: alterator-l10n >= 2.9.114-alt1
 Requires: pam-config >= 1.7.0-alt1
@@ -29,9 +26,13 @@ Conflicts: alterator-lookout < 1.6-alt6
 Provides: alterator-nsswitch = %version
 Obsoletes: alterator-nsswitch
 
-BuildPreReq: alterator >= 5.0 alterator-lookout
+Source: %name-%version.tar
 
+BuildRequires(pre): alterator >= 5.0
+BuildRequires(pre): alterator-lookout
 BuildRequires: guile22-devel
+
+%filter_from_requires /^samba-common$/d;/systemd-services/d;/^gpupdate$/d;/gpupdate-setup/d
 
 %description
 Alterator module for system wide auth settings
@@ -118,7 +119,7 @@ Common package with default roles and privileges.
 Contains basic roles: users, power and localadmins.
 
 %prep
-%setup -q
+%setup
 
 %build
 %make_build libdir=%_libdir
