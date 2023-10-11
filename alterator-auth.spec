@@ -2,7 +2,7 @@
 
 Name: alterator-auth
 Version: 0.44.5
-Release: alt1
+Release: alt2
 
 Summary: Alterator module for system wide auth settings
 License: GPL
@@ -168,6 +168,10 @@ install -Dpm755 hooks/auth %buildroot/%_hooksdir/90-auth
 %files -n task-auth-freeipa
 
 %changelog
+* Wed Oct 11 2023 Michael Shigorin <mike@altlinux.org> 0.44.5-alt2
+- E2K: move to guile22 too
+- minor spec cleanup (see also ALT#46206)
+
 * Tue Sep 19 2023 Andrey Cherepanov <cas@altlinux.org> 0.44.5-alt1
 - Requires pam_propperpwnam for join to AD and FreeIPA to ignore login name in different forms.
 - system-auth: add --gpo to use GPO after join machine to Active Directory.
