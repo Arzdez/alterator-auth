@@ -31,11 +31,7 @@ Obsoletes: alterator-nsswitch
 
 BuildPreReq: alterator >= 5.0 alterator-lookout
 
-%ifarch %e2k
-BuildRequires: guile20-devel libguile20-devel
-%else
 BuildRequires: guile22-devel
-%endif
 
 %description
 Alterator module for system wide auth settings
