@@ -20,12 +20,6 @@ Requires: bind-utils
 Requires: local-policy >= 0.4.8-alt1
 Requires: alterator-default-configs >= 0.0.2-alt1
 
-Conflicts: alterator-fbi < 5.9-alt2
-Conflicts: alterator-lookout < 1.6-alt6
-
-Provides: alterator-nsswitch = %version
-Obsoletes: alterator-nsswitch
-
 Source: %name-%version.tar
 
 BuildRequires(pre): alterator >= 5.0
