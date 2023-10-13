@@ -128,6 +128,7 @@ install -Dpm644 etc/role.d/powerusers.role %buildroot%_sysconfdir/role.d/powerus
 install -Dpm644 etc/role.d/localadmins.role %buildroot%_sysconfdir/role.d/localadmins.role
 install -Dpm755 sbin/system-auth %buildroot/%_sbindir/system-auth
 install -Dpm755 hooks/auth %buildroot/%_hooksdir/90-auth
+rm -f %buildroot%_libexecdir/alterator/hooks/auth
 
 %pre -n alterator-roles-common
 %_sbindir/groupadd -r -f -g 98 everyone 2> /dev/null ||:
