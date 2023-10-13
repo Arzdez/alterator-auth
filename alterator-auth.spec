@@ -2,10 +2,10 @@
 
 Name: alterator-auth
 Version: 0.44.5
-Release: alt2
+Release: alt3
 
 Summary: Alterator module for system wide auth settings
-License: GPL
+License: GPL-2.0+
 Group: System/Configuration/Other
 
 Requires: alterator >= 4.7-alt4
@@ -169,6 +169,11 @@ rm -f %buildroot%_libexecdir/alterator/hooks/auth
 %files -n task-auth-freeipa
 
 %changelog
+* Fri Oct 13 2023 Andrey Cherepanov <cas@altlinux.org> 0.44.5-alt3
+- Fix autoreq filters: hostnamectl is in systemd package
+- Remove orphaned hook file
+- Specified license with version.
+
 * Wed Oct 11 2023 Michael Shigorin <mike@altlinux.org> 0.44.5-alt2
 - E2K: move to guile22 too
 - minor spec cleanup (see also ALT#46206)
