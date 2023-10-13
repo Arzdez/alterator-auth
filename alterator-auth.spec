@@ -26,7 +26,7 @@ BuildRequires(pre): alterator >= 5.0
 BuildRequires(pre): alterator-lookout
 BuildRequires: guile22-devel
 
-%filter_from_requires /^samba-common$/d;/systemd-services/d;/^gpupdate$/d;/gpupdate-setup/d
+%filter_from_requires /^samba-common$/d;/^systemd/d;/^gpupdate$/d;/gpupdate-setup/d
 
 %description
 Alterator module for system wide auth settings
