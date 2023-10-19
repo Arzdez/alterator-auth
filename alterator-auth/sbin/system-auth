@@ -15,7 +15,7 @@ unset TEMP
 while [[ $# -gt 0 ]]; do
   case "$1" in
     '-d') set -x; shift;;
-    '--createcomputer') shift; OU="createcomputer=\"$1\""; shift;;
+    '--createcomputer') shift; OU="createcomputer=$1"; shift;;
     '--windows2003')  win2003="true"; shift;;
     '--winbind')  use_winbind="true"; shift;;
     '--gpo')  use_gpo="true"; shift;;
@@ -811,7 +811,7 @@ Use LDAP authentication
   system-auth write ldap dc=domain,dc=name ldap://127.0.0.1
 
 Use Active Directory authentication (using default kerberos ccache without Administrator password)
-  system-auth write ad domain.name host workgroup [Administrator password] [--windows2003] [--createcomputer="ou=COMPUTEROU"] [--winbind] [--gpo]
+  system-auth write ad domain.name host workgroup [Administrator password] [--windows2003] [--createcomputer=COMPUTEROU/Linux"] [--winbind] [--gpo]
 
 Use FreeIPA authentication
   system-auth write freeipa domain.name host admin password
