@@ -811,7 +811,7 @@ Use LDAP authentication
   system-auth write ldap dc=domain,dc=name ldap://127.0.0.1
 
 Use Active Directory authentication (using default kerberos ccache without Administrator password)
-  system-auth write ad domain.name host workgroup [Administrator password] [--windows2003] [--createcomputer=COMPUTEROU/Linux"] [--winbind] [--gpo]
+  system-auth write ad domain.name host workgroup [Administrator password] [--windows2003] [--createcomputer=COMPUTEROU/Linux] [--winbind] [--gpo]
 
 Use FreeIPA authentication
   system-auth write freeipa domain.name host admin password
