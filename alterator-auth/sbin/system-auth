@@ -911,9 +911,13 @@ case "$action" in
                 # prepare auth service
                 if [ -e "$sssd_conf" -a -z "$use_winbind" ]; then
                     disable_service nscd
+                    disable_service winbind
                     enable_service sssd
+                else
+                    disable_service nscd
+                    disable_service sssd
+                    enable_service winbind
                 fi
-                enable_service winbind
                 # Adding roles for domain users
                 set_domain_group_mapping_for_ad "$3" || set_domain_group_mapping
                 # Enable GPO
