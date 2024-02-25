@@ -911,7 +911,7 @@ case "$action" in
                 # prepare auth service
                 if [ -e "$sssd_conf" -a -z "$use_winbind" ]; then
                     disable_service nscd
-                    disable_service winbind
+                    enable_service winbind
                     enable_service sssd
                 else
                     disable_service nscd
