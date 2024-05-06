@@ -669,6 +669,42 @@ set_kerberos_realm()
     chmod a+r "$krb5_conf"
 }
 
+# Register host in domain DNS
+dns_register()
+{
+    local domain=
+    local host_name=
+    local upper_host_name=
+    local host_tmp_krb5_cache=
+
+    #set vars
+    domain="$(upper "$1")"
+    host_name="$2"
+    upper_host_name="$(upper $host_name)"
+    host_tmp_krb5_cache="$(mktemp | sed "s/^/FILE:/")"
+
+    # Export tmp cache for host
+    export KRB5CCNAME="$host_tmp_krb5_cache"
+
+    # Kinit with host cred
+    out_host_kinit="$(kinit -k "$upper_host_name"\$@"$domain" 2>&1)"
+
+    # echo "ERROR: $output" and destroy tmp cache
+    if [ "$?" -ne 0 ]; then
+        echo "$out_host_kinit"
+        kdestroy -A &>/dev/null
+        unset KRB5CCNAME
+        return 1
+    else
+        # Register machine
+        $net_cmd ads dns register --use-kerberos=required --use-krb5-ccache="$host_tmp_krb5_cache" "$host_name.$domain"
+    fi
+
+    # destroy ticket and unset host tmp cache var
+    kdestroy -A &>/dev/null
+    unset KRB5CCNAME
+}
+
 # Join to Active Directory domin
 join_ad_domain()
 {
@@ -741,11 +777,6 @@ join_ad_domain()
 	$net_cmd ads join --use-kerberos=required --no-dns-updates --use-krb5-ccache="$krb_ccache_name" $OU osName="$OS_NAME" osVer="$OS_VER"
 
 	[ "$?" -ne 0 ] && return 1
-
-	# Register machine in domain DNS
-	if [ -n "$host_name" ]; then
-		$net_cmd ads dns register --use-kerberos=required --use-krb5-ccache="$krb_ccache_name" "$host_name.$ldomain"
-	fi
 
 	# Destroy ticket if credential cache not used
 	if [ -z "$use_krb_ccache" ]; then
@@ -918,6 +949,10 @@ case "$action" in
                     disable_service sssd
                     enable_service winbind
                 fi
+
+                # Register in domain dns
+                dns_register "$1" "$2"
+
                 # Adding roles for domain users
                 set_domain_group_mapping_for_ad "$3" || set_domain_group_mapping
                 # Enable GPO
